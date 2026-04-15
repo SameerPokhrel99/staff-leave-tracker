@@ -3,124 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Innovate TechSupport | Leave Management Pro</title>
+    <title>Innovate TechSupport | Leave Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="bg-slate-50 font-sans antialiased">
+<body class="bg-slate-100 font-sans antialiased">
 
-    <div class="max-w-6xl mx-auto py-10 px-4" x-data="leaveSystem()" x-init="init()">
+    <div class="max-w-6xl mx-auto py-8 px-4" x-data="leaveSystem()" x-init="init()">
         
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-8 border-t-4 border-blue-600 flex flex-col md:flex-row justify-between items-center">
+        <div class="bg-white rounded-2xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-center border-b-4 border-blue-600">
             <div>
-                <h1 class="text-3xl font-black text-slate-800">Innovate TechSupport</h1>
-                <p class="text-blue-600 font-bold uppercase text-xs tracking-widest">Operations Leave Management System</p>
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight">Innovate TechSupport</h1>
+                <p class="text-blue-600 font-bold uppercase text-xs tracking-widest flex items-center">
+                    <span class="mr-2">●</span> Operations Ledger
+                </p>
             </div>
-            <div class="text-right mt-4 md:mt-0">
-                <button @click="showForm = !showForm" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition-all shadow-lg">
-                    <span x-text="showForm ? '− Close Form' : '+ Add New Record'"></span>
-                </button>
+            <div class="text-right mt-4 md:mt-0 border-l-0 md:border-l pl-0 md:pl-6 border-slate-200">
+                <p class="text-slate-800 font-bold">Sameer Pokhrel</p>
+                <p class="text-slate-500 text-xs font-medium uppercase tracking-tighter">Operations Lead & System Owner</p>
             </div>
         </div>
 
-        <div x-show="showForm" x-transition class="bg-white p-6 rounded-xl shadow-md border border-blue-100 mb-8">
-            <h2 class="text-lg font-bold mb-4 text-slate-700" x-text="isEditing ? 'Edit Record' : 'Add New Leave Record'"></h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input type="text" x-model="form.name" placeholder="Employee Name" class="border p-2 rounded">
-                <select x-model="form.type" class="border p-2 rounded text-gray-600">
-                    <option value="Casual Leave">Casual Leave</option>
-                    <option value="Annual Leave">Annual Leave</option>
-                    <option value="Sick Leave">Sick Leave</option>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="md:col-span-2 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">Filter by Employee Name</label>
+                <select x-model="filterName" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="All">All Employees (Full List)</option>
+                    <template x-for="name in uniqueNames" :key="name">
+                        <option :value="name" x-text="name"></option>
+                    </template>
                 </select>
-                <input type="text" x-model="form.from" placeholder="From Date (e.g. 2082-01-01)" class="border p-2 rounded">
-                <input type="text" x-model="form.to" placeholder="To Date" class="border p-2 rounded">
-                <input type="number" step="0.5" x-model="form.days" placeholder="Total Days" class="border p-2 rounded">
-                <div class="flex gap-2">
-                    <button @click="saveRecord()" class="bg-emerald-500 text-white px-4 py-2 rounded font-bold w-full hover:bg-emerald-600">Save</button>
-                    <button @click="resetForm()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded font-bold w-full hover:bg-gray-300">Cancel</button>
+            </div>
+            <div class="bg-blue-600 p-4 rounded-xl shadow-md text-white">
+                <p class="text-[10px] font-bold opacity-80 uppercase">Filtered Total Days</p>
+                <p class="text-2xl font-black" x-text="calculateFilteredTotal()"></p>
+            </div>
+            <button @click="showForm = !showForm" class="bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg">
+                <span x-text="showForm ? '✕ Close' : '+ Add Record'"></span>
+            </button>
+        </div>
+
+        <div x-show="showForm" x-transition class="bg-white p-6 rounded-2xl shadow-xl border border-blue-100 mb-8">
+            <h2 class="text-lg font-black mb-6 text-slate-800 border-b pb-2" x-text="isEditing ? '📝 Edit Record' : '➕ New Leave Entry'"></h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Employee Name</label>
+                    <input list="employee-list" x-model="form.name" class="w-full border p-2 rounded-lg bg-slate-50" placeholder="Type or select name">
+                    <datalist id="employee-list">
+                        <template x-for="name in uniqueNames" :key="name">
+                            <option :value="name"></option>
+                        </template>
+                    </datalist>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Leave Type</label>
+                    <select x-model="form.type" class="w-full border p-2 rounded-lg bg-slate-50">
+                        <option>Casual Leave</option>
+                        <option>Annual Leave</option>
+                        <option>Sick Leave</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Total Days</label>
+                    <input type="number" step="0.5" x-model="form.days" class="w-full border p-2 rounded-lg bg-yellow-50 font-bold" placeholder="Auto-calculated">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">From Date (YYYY-MM-DD)</label>
+                    <input type="date" x-model="form.from" @change="autoCalcDays()" class="w-full border p-2 rounded-lg bg-slate-50">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">To Date (YYYY-MM-DD)</label>
+                    <input type="date" x-model="form.to" @change="autoCalcDays()" class="w-full border p-2 rounded-lg bg-slate-50">
+                </div>
+
+                <div class="flex gap-2 items-end">
+                    <button @click="saveRecord()" class="bg-emerald-500 text-white px-6 py-2 rounded-lg font-black w-full hover:bg-emerald-600 transition-colors">SAVE ENTRY</button>
+                    <button @click="resetForm()" class="bg-slate-200 text-slate-600 px-6 py-2 rounded-lg font-bold w-full">CANCEL</button>
                 </div>
             </div>
         </div>
 
-        <div class="mb-6">
-            <div class="relative max-w-md">
-                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                    🔍
-                </span>
-                <input type="text" x-model="search" placeholder="Filter by Employee Name..." 
-                       class="pl-10 w-full p-3 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
-            <table class="w-full text-left">
-                <thead class="bg-slate-800 text-white">
-                    <tr>
-                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Name</th>
-                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Type</th>
-                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Duration</th>
-                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center">Days</th>
-                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Actions</th>
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-800 text-slate-300 text-[10px] uppercase tracking-widest">
+                        <th class="px-6 py-4 font-black">Employee</th>
+                        <th class="px-6 py-4 font-black">Category</th>
+                        <th class="px-6 py-4 font-black">Date Range</th>
+                        <th class="px-6 py-4 font-black text-center">Days</th>
+                        <th class="px-6 py-4 font-black text-right">Settings</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
-                    <template x-for="(item, index) in filteredLeaves" :key="index">
-                        <tr class="hover:bg-blue-50/50 transition-colors">
-                            <td class="px-6 py-4 font-bold text-slate-700" x-text="item.name"></td>
+                <tbody class="divide-y divide-slate-100">
+                    <template x-for="(item, index) in filteredLeaves" :key="item.id">
+                        <tr class="hover:bg-blue-50/50 transition-all">
+                            <td class="px-6 py-4">
+                                <span class="block font-black text-slate-800 text-md" x-text="item.name"></span>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase">Staff ID: <span x-text="item.id.toString().slice(-4)"></span></span>
+                            </td>
                             <td class="px-6 py-4">
                                 <span :class="{
-                                    'bg-orange-100 text-orange-700': item.type === 'Casual Leave',
-                                    'bg-green-100 text-green-700': item.type === 'Annual Leave',
-                                    'bg-red-100 text-red-700': item.type === 'Sick Leave'
-                                }" class="px-3 py-1 rounded-full text-[10px] font-black uppercase" x-text="item.type"></span>
+                                    'bg-orange-100 text-orange-700 border-orange-200': item.type === 'Casual Leave',
+                                    'bg-emerald-100 text-emerald-700 border-emerald-200': item.type === 'Annual Leave',
+                                    'bg-red-100 text-red-700 border-red-200': item.type === 'Sick Leave'
+                                }" class="px-3 py-1 rounded-md text-[10px] font-black uppercase border" x-text="item.type"></span>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-500">
-                                <span x-text="item.from"></span> → <span x-text="item.to"></span>
+                            <td class="px-6 py-4 text-sm font-medium text-slate-500">
+                                <span x-text="item.from"></span> <span class="text-slate-300 mx-1">→</span> <span x-text="item.to"></span>
                             </td>
-                            <td class="px-6 py-4 text-center font-bold text-blue-600" x-text="item.days"></td>
-                            <td class="px-6 py-4 text-right space-x-2">
-                                <button @click="editRecord(item)" class="text-blue-500 hover:text-blue-700 font-bold text-sm">Edit</button>
-                                <button @click="deleteRecord(item.id)" class="text-red-500 hover:text-red-700 font-bold text-sm">Delete</button>
+                            <td class="px-6 py-4 text-center">
+                                <span class="inline-block bg-slate-100 px-3 py-1 rounded-lg font-black text-slate-700" x-text="item.days"></span>
+                            </td>
+                            <td class="px-6 py-4 text-right space-x-3">
+                                <button @click="editRecord(item)" class="text-blue-600 hover:text-blue-800 font-black text-xs uppercase tracking-tighter">Edit</button>
+                                <button @click="deleteRecord(item.id)" class="text-red-400 hover:text-red-600 font-black text-xs uppercase tracking-tighter">Delete</button>
                             </td>
                         </tr>
                     </template>
                 </tbody>
             </table>
         </div>
+
+        <footer class="mt-12 pt-8 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center text-slate-400">
+            <p class="text-xs font-bold uppercase tracking-widest">© 2026 Innovate TechSupport System</p>
+            <p class="text-xs font-medium italic mt-2 md:mt-0">Designed & Maintained by <span class="text-slate-600 font-black not-italic">Sameer Pokhrel (Operations Lead)</span></p>
+        </footer>
     </div>
 
     <script>
         function leaveSystem() {
             return {
-                search: '',
+                filterName: 'All',
                 showForm: false,
                 isEditing: false,
                 leaves: [],
                 form: { id: null, name: '', type: 'Casual Leave', from: '', to: '', days: '' },
                 
                 init() {
-                    const saved = localStorage.getItem('it-leaves');
-                    if (saved) {
-                        this.leaves = JSON.parse(saved);
-                    } else {
-                        // Default data if empty
-                        this.leaves = [
-                            { id: Date.now(), name: "Sunita Didi", type: "Casual Leave", from: "1/7/2082", to: "1/8/2082", days: 2 }
-                        ];
-                    }
+                    const saved = localStorage.getItem('it-leaves-v2');
+                    this.leaves = saved ? JSON.parse(saved) : [
+                        { id: 1713175200000, name: "Sunita Didi", type: "Casual Leave", from: "2082-01-07", to: "2082-01-08", days: 2 }
+                    ];
+                },
+
+                // Unique list of names for dropdowns
+                get uniqueNames() {
+                    return [...new Set(this.leaves.map(l => l.name))].sort();
                 },
 
                 get filteredLeaves() {
-                    return this.leaves.filter(i => i.name.toLowerCase().includes(this.search.toLowerCase()));
+                    if (this.filterName === 'All') return this.leaves;
+                    return this.leaves.filter(l => l.name === this.filterName);
+                },
+
+                calculateFilteredTotal() {
+                    const total = this.filteredLeaves.reduce((sum, item) => sum + parseFloat(item.days || 0), 0);
+                    return total.toFixed(1);
+                },
+
+                autoCalcDays() {
+                    if (this.form.from && this.form.to) {
+                        const start = new Date(this.form.from);
+                        const end = new Date(this.form.to);
+                        const diffTime = Math.abs(end - start);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
+                        this.form.days = diffDays > 0 ? diffDays : 0;
+                    }
                 },
 
                 saveRecord() {
-                    if (!this.form.name || !this.form.days) return alert('Please fill Name and Days');
+                    if (!this.form.name || !this.form.days) return alert('Name and Days are required!');
                     
                     if (this.isEditing) {
                         this.leaves = this.leaves.map(l => l.id === this.form.id ? { ...this.form } : l);
                     } else {
-                        this.leaves.push({ ...this.form, id: Date.now() });
+                        this.leaves.unshift({ ...this.form, id: Date.now() });
                     }
                     
                     this.persist();
@@ -131,17 +192,18 @@
                     this.form = { ...item };
                     this.isEditing = true;
                     this.showForm = true;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 },
 
                 deleteRecord(id) {
-                    if (confirm('Delete this record?')) {
+                    if (confirm('Permanently remove this record?')) {
                         this.leaves = this.leaves.filter(l => l.id !== id);
                         this.persist();
                     }
                 },
 
                 persist() {
-                    localStorage.setItem('it-leaves', JSON.stringify(this.leaves));
+                    localStorage.setItem('it-leaves-v2', JSON.stringify(this.leaves));
                 },
 
                 resetForm() {
