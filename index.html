@@ -24,27 +24,27 @@
         <div class="flex flex-col md:flex-row justify-between items-end mb-10 pb-6 border-b border-slate-200">
             <div>
                 <h1 class="text-3xl font-black text-slate-900 tracking-tighter uppercase">Leave Attendance Ledger</h1>
-                <p class="text-slate-500 font-medium">Real-time tracking of employee absence</p>
+                <p class="text-slate-500 font-medium tracking-tight">Real-time tracking • Support for Half Days</p>
             </div>
             <button @click="openModal()" class="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-xl">＋ NEW LEAVE ENTRY</button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <div class="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Leaves Today</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Today</p>
                 <p class="text-4xl font-black text-indigo-600" x-text="countActiveToday()"></p>
             </div>
             <div class="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Staff on Record</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Staff</p>
                 <p class="text-4xl font-black text-slate-800" x-text="uniqueNames.length"></p>
             </div>
             <div class="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Monthly Days</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Days Used</p>
                 <p class="text-4xl font-black text-slate-800" x-text="totalLeaveDays()"></p>
             </div>
         </div>
 
-        <div class="mb-8 flex gap-4">
+        <div class="mb-8">
             <input type="text" x-model="search" placeholder="Search employee name..." 
                    class="w-full max-w-md p-4 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-200 bg-white shadow-sm font-bold">
         </div>
@@ -64,14 +64,14 @@
                         <tr class="hover:bg-slate-50/50">
                             <td class="px-8 py-6">
                                 <p class="font-black text-slate-800 text-lg uppercase" x-text="item.name"></p>
-                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest" x-text="'Applied: ' + item.appliedDate"></p>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase" x-text="'Applied: ' + (item.appliedDate || 'N/A')"></p>
                             </td>
                             <td class="px-8 py-6">
-                                <span class="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest" x-text="item.type"></span>
+                                <span class="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase" x-text="item.type"></span>
                             </td>
                             <td class="px-8 py-6 text-center">
-                                <p class="text-sm font-black text-slate-700" x-text="item.startDate + ' → ' + item.endDate"></p>
-                                <p class="text-xs font-bold text-indigo-500" x-text="calculateDays(item.startDate, item.endDate) + ' Full Days'"></p>
+                                <p class="text-sm font-black text-slate-700" x-text="item.startDate + (item.isHalfDay ? ' (Half)' : ' to ' + item.endDate)"></p>
+                                <p class="text-xs font-bold text-indigo-500" x-text="item.totalDays + ' Days'"></p>
                             </td>
                             <td class="px-8 py-6 text-right space-x-3">
                                 <button @click="editLeave(item)" class="text-indigo-600 font-black text-[10px] uppercase">Edit</button>
@@ -85,20 +85,31 @@
 
         <div x-show="showForm" x-cloak class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-xl rounded-[2.5rem] p-10 shadow-2xl" @click.away="closeModal()">
-                <h3 class="text-2xl font-black mb-8">Leave Entry Form</h3>
+                <h3 class="text-2xl font-black mb-8">Leave Entry</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="md:col-span-2">
                         <label class="text-[10px] font-black text-slate-400 uppercase">Employee Name</label>
-                        <div class="relative mt-1">
-                            <input type="text" x-model="form.name" list="employeeList" placeholder="Type or select name..."
-                                   class="w-full bg-slate-50 border p-4 rounded-2xl outline-none font-bold">
-                            <datalist id="employeeList">
-                                <template x-for="name in uniqueNames" :key="name">
-                                    <option :value="name"></option>
-                                </template>
-                            </datalist>
+                        <input type="text" x-model="form.name" list="employeeList" placeholder="Name..." class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none font-bold">
+                        <datalist id="employeeList"><template x-for="name in uniqueNames" :key="name"><option :value="name"></option></template></datalist>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <div class="flex items-center gap-2 mb-2">
+                            <input type="checkbox" id="halfDay" x-model="form.isHalfDay" class="w-5 h-5 accent-indigo-600">
+                            <label for="halfDay" class="font-black text-slate-700 text-sm">Is this a Half Day leave?</label>
                         </div>
                     </div>
+
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Start Date</label>
+                        <input type="date" x-model="form.startDate" class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none">
+                    </div>
+                    
+                    <div x-show="!form.isHalfDay">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">End Date</label>
+                        <input type="date" x-model="form.endDate" class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none">
+                    </div>
+
                     <div class="md:col-span-2">
                         <label class="text-[10px] font-black text-slate-400 uppercase">Leave Type</label>
                         <select x-model="form.type" class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none font-bold">
@@ -106,16 +117,7 @@
                             <option value="Casual">Casual Leave</option>
                             <option value="Annual">Annual Leave</option>
                             <option value="Unpaid">Unpaid Leave</option>
-                            <option value="Work From Home">Work From Home</option>
                         </select>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase">Start Date</label>
-                        <input type="date" x-model="form.startDate" class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase">End Date</label>
-                        <input type="date" x-model="form.endDate" class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none">
                     </div>
                 </div>
                 <div class="flex gap-4 mt-10">
@@ -144,7 +146,7 @@
             return {
                 showForm: false, isEditing: false, search: '', leaves: [],
                 today: new Date().toISOString().split('T')[0],
-                form: { id: null, name: '', type: 'Sick', startDate: '', endDate: '', appliedDate: '' },
+                form: { id: null, name: '', type: 'Sick', startDate: '', endDate: '', isHalfDay: false, appliedDate: '' },
                 
                 init() {
                     db.ref('leaves').on('value', (snapshot) => {
@@ -153,39 +155,43 @@
                     });
                 },
 
-                get filteredLeaves() {
-                    return this.leaves.filter(l => l.name.toLowerCase().includes(this.search.toLowerCase()));
-                },
+                get filteredLeaves() { return this.leaves.filter(l => l.name.toLowerCase().includes(this.search.toLowerCase())); },
+                get uniqueNames() { return [...new Set(this.leaves.map(l => l.name))]; },
 
-                // Logic to get list of unique names for the dropdown
-                get uniqueNames() {
-                    return [...new Set(this.leaves.map(l => l.name))];
-                },
-
-                calculateDays(s, e) {
-                    if (!s || !e) return 0;
-                    const diff = Math.floor((new Date(e) - new Date(s)) / (1000 * 60 * 60 * 24)) + 1;
+                calculateDaysForEntry() {
+                    if (this.form.isHalfDay) return 0.5;
+                    const s = new Date(this.form.startDate);
+                    const e = new Date(this.form.endDate);
+                    const diff = Math.floor((e - s) / (1000 * 60 * 60 * 24)) + 1;
                     return diff > 0 ? diff : 0;
                 },
 
                 totalLeaveDays() {
-                    return this.leaves.reduce((sum, l) => sum + this.calculateDays(l.startDate, l.endDate), 0);
+                    return this.leaves.reduce((sum, l) => sum + (parseFloat(l.totalDays) || 0), 0);
                 },
 
                 countActiveToday() {
                     const now = new Date(this.today);
                     return this.leaves.filter(l => {
                         const s = new Date(l.startDate);
-                        const e = new Date(l.endDate);
+                        const e = new Date(l.isHalfDay ? l.startDate : l.endDate);
                         return now >= s && now <= e;
                     }).length;
                 },
 
                 saveLeave() {
-                    if (!this.form.name || !this.form.startDate || !this.form.endDate) return alert('Fill all required fields');
+                    if (!this.form.name || !this.form.startDate) return alert('Name and Start Date required');
+                    if (!this.form.isHalfDay && !this.form.endDate) return alert('End Date required for full leaves');
+                    
                     const id = this.form.id || Date.now();
-                    if (!this.form.appliedDate) this.form.appliedDate = this.today;
-                    db.ref('leaves/' + id).set({ ...this.form, id: id });
+                    const entryData = { 
+                        ...this.form, 
+                        id: id, 
+                        appliedDate: this.form.appliedDate || this.today,
+                        totalDays: this.calculateDaysForEntry()
+                    };
+                    
+                    db.ref('leaves/' + id).set(entryData);
                     this.closeModal();
                 },
 
@@ -193,7 +199,7 @@
                 closeModal() { this.showForm = false; this.resetForm(); },
                 editLeave(item) { this.form = { ...item }; this.isEditing = true; this.showForm = true; },
                 deleteLeave(id) { if (confirm('Delete?')) db.ref('leaves/' + id).remove(); },
-                resetForm() { this.form = { id: null, name: '', type: 'Sick', startDate: this.today, endDate: this.today, appliedDate: '' }; }
+                resetForm() { this.form = { id: null, name: '', type: 'Sick', startDate: this.today, endDate: this.today, isHalfDay: false, appliedDate: '' }; }
             }
         }
     </script>
