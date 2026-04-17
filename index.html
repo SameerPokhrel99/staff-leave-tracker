@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Leave Ledger | Innovate Tech</title>
+    <title>Staff Leave Ledger | Secured</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -19,22 +19,13 @@
 <body x-data="leaveSystem()" x-init="init()">
 
     <div x-show="!isLoggedIn" class="fixed inset-0 bg-[#fdfbf7] z-[1000] flex items-center justify-center p-6">
-        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-200 w-full max-w-md">
-            <div class="text-center mb-8">
-                <h1 class="text-3xl font-black text-slate-900 uppercase tracking-tighter">Innovate Tech</h1>
-                <p class="text-slate-400 font-bold text-[10px] mt-2 uppercase tracking-widest">Staff Leave Portal Login</p>
-            </div>
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-200 w-full max-w-md text-center">
+            <h1 class="text-3xl font-black text-slate-900 uppercase">Innovate Tech</h1>
+            <p class="text-slate-400 font-bold text-[10px] mt-2 mb-8 uppercase tracking-widest">Leave Portal Login</p>
             <div class="space-y-5">
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Corporate Email</label>
-                    <input type="email" x-model="loginEmail" class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none font-bold">
-                </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Password</label>
-                    <input type="password" x-model="loginPassword" class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none font-bold">
-                </div>
-                <button @click="login()" class="w-full bg-indigo-600 text-white p-5 rounded-2xl font-bold hover:bg-indigo-700 transition-all">SECURE LOGIN</button>
-                <p x-text="authError" class="text-rose-500 text-xs font-bold text-center mt-2"></p>
+                <input type="email" x-model="loginEmail" placeholder="Email" class="w-full bg-slate-50 border p-4 rounded-2xl outline-none font-bold">
+                <input type="password" x-model="loginPassword" placeholder="Password" class="w-full bg-slate-50 border p-4 rounded-2xl outline-none font-bold">
+                <button @click="login()" class="w-full bg-indigo-600 text-white p-5 rounded-2xl font-bold">LOG IN</button>
             </div>
         </div>
     </div>
@@ -42,66 +33,34 @@
     <div x-show="isLoggedIn" class="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center sticky top-0 z-[200]">
         <div class="flex items-center gap-4">
             <div class="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-black" x-text="userInitial"></div>
-            <div>
-                <p class="text-[8px] font-black text-slate-400 uppercase leading-none">Management Session</p>
-                <p class="text-[10px] font-bold text-slate-700" x-text="currentUserEmail"></p>
-            </div>
+            <p class="text-[10px] font-bold text-slate-700" x-text="currentUserEmail"></p>
         </div>
-        <button @click="logout()" class="text-[10px] font-black text-rose-500 uppercase hover:underline">Sign Out</button>
-    </div>
-
-    <div class="bg-indigo-900 text-white text-[10px] font-black uppercase tracking-[0.3em] py-2 text-center">
-        Cloud Sync Active • Staff Leave Log
+        <button @click="logout()" class="text-[10px] font-black text-rose-500 uppercase">Sign Out</button>
     </div>
 
     <main class="max-w-7xl mx-auto px-6 py-10" x-show="isLoggedIn">
         <div class="flex flex-col md:flex-row justify-between items-end mb-10 pb-6 border-b border-slate-200">
-            <div>
-                <h1 class="text-3xl font-black text-slate-900 tracking-tighter uppercase">Leave Attendance Ledger</h1>
-                <p class="text-slate-500 font-medium tracking-tight">Real-time tracking • Support for Half Days</p>
-            </div>
-            <button @click="openModal()" class="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-xl">＋ NEW LEAVE ENTRY</button>
+            <h1 class="text-3xl font-black text-slate-900 tracking-tighter uppercase">Leave Attendance Ledger</h1>
+            <button @click="openModal()" class="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl">＋ NEW ENTRY</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div class="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Today</p>
-                <p class="text-4xl font-black text-indigo-600" x-text="countActiveToday()"></p>
-            </div>
-            <div class="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Staff</p>
-                <p class="text-4xl font-black text-slate-800" x-text="uniqueNames.length"></p>
-            </div>
-            <div class="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Days Used</p>
-                <p class="text-4xl font-black text-slate-800" x-text="totalLeaveDays()"></p>
-            </div>
-        </div>
-
-        <div class="mb-8">
-            <input type="text" x-model="search" placeholder="Search employee name..." 
-                   class="w-full max-w-md p-4 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-200 bg-white shadow-sm font-bold">
-        </div>
-
-        <div class="cream-card rounded-[2rem] overflow-hidden shadow-sm">
+        <div class="cream-card rounded-[2rem] overflow-hidden">
             <table class="w-full text-left">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200">
-                        <th class="px-8 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Employee</th>
-                        <th class="px-8 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest">Leave Type</th>
-                        <th class="px-8 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest text-center">Duration</th>
-                        <th class="px-8 py-6 text-[10px] font-black uppercase text-slate-400 tracking-widest text-right">Actions</th>
+                        <th class="px-8 py-6 text-[10px] font-black uppercase text-slate-400">Employee & Activity</th>
+                        <th class="px-8 py-6 text-[10px] font-black uppercase text-slate-400 text-center">Duration</th>
+                        <th class="px-8 py-6 text-[10px] font-black uppercase text-slate-400 text-right">Settings</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white">
-                    <template x-for="item in filteredLeaves" :key="item.id">
+                    <template x-for="item in leaves" :key="item.id">
                         <tr class="hover:bg-slate-50/50">
                             <td class="px-8 py-6">
                                 <p class="font-black text-slate-800 text-lg uppercase" x-text="item.name"></p>
-                                <p class="text-[10px] text-slate-400 font-bold uppercase" x-text="'Applied: ' + (item.appliedDate || 'N/A')"></p>
-                            </td>
-                            <td class="px-8 py-6">
-                                <span class="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase" x-text="item.type"></span>
+                                <div x-show="item.lastEditedBy" class="mt-1">
+                                    <span class="text-[8px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold uppercase" x-text="'Edited By: ' + item.lastEditedBy.split('@')[0] + ' • ' + item.lastEditedAt"></span>
+                                </div>
                             </td>
                             <td class="px-8 py-6 text-center">
                                 <p class="text-sm font-black text-slate-700" x-text="item.startDate + (item.isHalfDay ? ' (Half)' : ' to ' + item.endDate)"></p>
@@ -109,58 +68,31 @@
                             </td>
                             <td class="px-8 py-6 text-right space-x-3">
                                 <button @click="editLeave(item)" class="text-indigo-600 font-black text-[10px] uppercase">Edit</button>
-                                <button @click="deleteLeave(item.id)" class="text-slate-300 hover:text-rose-500 font-black text-[10px] uppercase">Del</button>
+                                <template x-if="currentUserEmail === superAdmin">
+                                    <button @click="deleteLeave(item.id)" class="text-rose-500 font-black text-[10px] uppercase">Delete</button>
+                                </template>
                             </td>
                         </tr>
                     </template>
                 </tbody>
             </table>
         </div>
+    </main>
 
-        <div x-show="showForm" x-cloak class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <div class="bg-white w-full max-w-xl rounded-[2.5rem] p-10 shadow-2xl" @click.away="closeModal()">
-                <h3 class="text-2xl font-black mb-8">Leave Entry</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="md:col-span-2">
-                        <label class="text-[10px] font-black text-slate-400 uppercase">Employee Name</label>
-                        <input type="text" x-model="form.name" list="employeeList" placeholder="Name..." class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none font-bold">
-                        <datalist id="employeeList"><template x-for="name in uniqueNames" :key="name"><option :value="name"></option></template></datalist>
-                    </div>
-                    
-                    <div class="md:col-span-2">
-                        <div class="flex items-center gap-2 mb-2">
-                            <input type="checkbox" id="halfDay" x-model="form.isHalfDay" class="w-5 h-5 accent-indigo-600">
-                            <label for="halfDay" class="font-black text-slate-700 text-sm">Is this a Half Day leave?</label>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase">Start Date</label>
-                        <input type="date" x-model="form.startDate" class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none">
-                    </div>
-                    
-                    <div x-show="!form.isHalfDay">
-                        <label class="text-[10px] font-black text-slate-400 uppercase">End Date</label>
-                        <input type="date" x-model="form.endDate" class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none">
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="text-[10px] font-black text-slate-400 uppercase">Leave Type</label>
-                        <select x-model="form.type" class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none font-bold">
-                            <option value="Sick">Sick Leave</option>
-                            <option value="Casual">Casual Leave</option>
-                            <option value="Annual">Annual Leave</option>
-                            <option value="Unpaid">Unpaid Leave</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="flex gap-4 mt-10">
-                    <button @click="saveLeave()" class="flex-1 bg-indigo-600 text-white p-5 rounded-2xl font-bold">Record Leave</button>
-                    <button @click="closeModal()" class="px-8 text-slate-400 font-bold">Cancel</button>
-                </div>
+    <div x-show="showForm" x-cloak class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xl rounded-[2.5rem] p-10" @click.away="closeModal()">
+            <h3 class="text-2xl font-black mb-8">Leave Entry</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 font-bold">
+                <div class="md:col-span-2"><label class="text-[10px] font-black text-slate-400 uppercase">Employee</label><input type="text" x-model="form.name" class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none"></div>
+                <div><label class="text-[10px] font-black text-slate-400 uppercase">Start Date</label><input type="date" x-model="form.startDate" class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none"></div>
+                <div><label class="text-[10px] font-black text-slate-400 uppercase">End Date</label><input type="date" x-model="form.endDate" class="w-full bg-slate-50 border p-4 rounded-2xl mt-1 outline-none"></div>
+            </div>
+            <div class="flex gap-4 mt-10">
+                <button @click="saveLeave()" class="flex-1 bg-indigo-600 text-white p-5 rounded-2xl font-bold">Record Leave</button>
+                <button @click="closeModal()" class="px-8 text-slate-400 font-bold">Cancel</button>
             </div>
         </div>
-    </main>
+    </div>
 
     <script>
         const firebaseConfig = {
@@ -170,93 +102,35 @@
             projectId: "insurancetracker-69b69",
             storageBucket: "insurancetracker-69b69.firebasestorage.app",
             messagingSenderId: "419918361385",
-            appId: "1:419918361385:web:01ec2d6b32b0df6988fd38",
-            measurementId: "G-QYD54HWGRB"
+            appId: "1:419918361385:web:01ec2d6b32b0df6988fd38"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         function leaveSystem() {
             return {
-                isLoggedIn: false, currentUserEmail: '', userInitial: '',
-                loginEmail: '', loginPassword: '', authError: '',
-                showForm: false, isEditing: false, search: '', leaves: [],
-                today: new Date().toISOString().split('T')[0],
-                form: { id: null, name: '', type: 'Sick', startDate: '', endDate: '', isHalfDay: false, appliedDate: '' },
-                
+                isLoggedIn: false, currentUserEmail: '', userInitial: '', superAdmin: 'sameer.pokharel@innovatetech.co',
+                loginEmail: '', loginPassword: '', showForm: false, leaves: [],
+                form: { id: null, name: '', startDate: '', endDate: '', isHalfDay: false },
                 init() {
-                    firebase.auth().onAuthStateChanged((user) => {
-                        if (user) {
-                            this.isLoggedIn = true;
-                            this.currentUserEmail = user.email;
-                            this.userInitial = user.email.charAt(0).toUpperCase();
-                            this.loadData();
-                        } else {
-                            this.isLoggedIn = false;
-                        }
+                    firebase.auth().onAuthStateChanged(user => {
+                        if (user) { this.isLoggedIn = true; this.currentUserEmail = user.email; this.userInitial = user.email[0].toUpperCase(); this.loadData(); }
                     });
                 },
-
-                login() {
-                    this.authError = "";
-                    firebase.auth().signInWithEmailAndPassword(this.loginEmail, this.loginPassword)
-                        .catch(err => this.authError = "Invalid Login Details");
-                },
-
+                login() { firebase.auth().signInWithEmailAndPassword(this.loginEmail, this.loginPassword); },
                 logout() { firebase.auth().signOut(); },
-
-                loadData() {
-                    db.ref('leaves').on('value', (snapshot) => {
-                        const data = snapshot.val();
-                        this.leaves = data ? Object.values(data).reverse() : [];
-                    });
-                },
-
-                get filteredLeaves() { return this.leaves.filter(l => l.name.toLowerCase().includes(this.search.toLowerCase())); },
-                get uniqueNames() { return [...new Set(this.leaves.map(l => l.name))]; },
-
-                calculateDaysForEntry() {
-                    if (this.form.isHalfDay) return 0.5;
-                    const s = new Date(this.form.startDate);
-                    const e = new Date(this.form.endDate);
-                    const diff = Math.floor((e - s) / (1000 * 60 * 60 * 24)) + 1;
-                    return diff > 0 ? diff : 0;
-                },
-
-                totalLeaveDays() {
-                    return this.leaves.reduce((sum, l) => sum + (parseFloat(l.totalDays) || 0), 0);
-                },
-
-                countActiveToday() {
-                    const now = new Date(this.today);
-                    return this.leaves.filter(l => {
-                        const s = new Date(l.startDate);
-                        const e = new Date(l.isHalfDay ? l.startDate : l.endDate);
-                        return now >= s && now <= e;
-                    }).length;
-                },
-
+                loadData() { db.ref('leaves').on('value', snap => { const d = snap.val(); this.leaves = d ? Object.values(d).reverse() : []; }); },
                 saveLeave() {
-                    if (!this.form.name || !this.form.startDate) return alert('Name and Start Date required');
-                    if (!this.form.isHalfDay && !this.form.endDate) return alert('End Date required for full leaves');
-                    
                     const id = this.form.id || Date.now();
-                    const entryData = { 
-                        ...this.form, 
-                        id: id, 
-                        appliedDate: this.form.appliedDate || this.today,
-                        totalDays: this.calculateDaysForEntry()
-                    };
-                    
-                    db.ref('leaves/' + id).set(entryData);
-                    this.closeModal();
+                    const s = new Date(this.form.startDate); const e = new Date(this.form.endDate);
+                    const diff = Math.floor((e - s) / 86400000) + 1;
+                    const data = { ...this.form, id: id, totalDays: diff, lastEditedBy: this.currentUserEmail, lastEditedAt: new Date().toLocaleString() };
+                    db.ref('leaves/' + id).set(data); this.closeModal();
                 },
-
-                openModal() { this.isEditing = false; this.resetForm(); this.showForm = true; },
-                closeModal() { this.showForm = false; this.resetForm(); },
-                editLeave(item) { this.form = { ...item }; this.isEditing = true; this.showForm = true; },
-                deleteLeave(id) { if (confirm('Delete?')) db.ref('leaves/' + id).remove(); },
-                resetForm() { this.form = { id: null, name: '', type: 'Sick', startDate: this.today, endDate: this.today, isHalfDay: false, appliedDate: '' }; }
+                deleteLeave(id) { if(confirm('Delete?')) db.ref('leaves/' + id).remove(); },
+                openModal() { this.form = { id: null, name: '', startDate: '', endDate: '' }; this.showForm = true; },
+                closeModal() { this.showForm = false; },
+                editLeave(item) { this.form = { ...item }; this.showForm = true; }
             }
         }
     </script>
