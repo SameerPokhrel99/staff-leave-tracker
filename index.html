@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Leave Ledger | Innovate Tech</title>
+    <title>Innovate Tech | Staff Intelligence</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -18,21 +18,37 @@
         .bg-sick { background: #fee2e2; color: #b91c1c; }
         .bg-casual { background: #fef3c7; color: #92400e; }
         .bg-unpaid { background: #f1f5f9; color: #475569; }
+        .glass-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
     </style>
 </head>
 <body x-data="leaveSystem()" x-init="init()">
 
     <div x-show="isLoggedIn" x-cloak>
-        <nav class="bg-white border-b px-8 py-4 flex justify-between items-center">
-            <span class="font-extrabold text-slate-900 uppercase tracking-tighter text-lg italic">Innovate Leave Ledger</span>
-            <button @click="logout()" class="text-xs font-black text-rose-500 uppercase">Sign Out</button>
+        <nav class="glass-nav border-b px-8 py-4 flex justify-between items-center sticky top-0 z-50">
+            <span class="font-extrabold text-slate-900 uppercase tracking-tighter text-lg italic">Innovate Leave Intelligence</span>
+            <button @click="logout()" class="text-[10px] font-black text-rose-500 uppercase px-4 py-2 hover:bg-rose-50 rounded-xl transition-all">Sign Out</button>
         </nav>
 
         <main class="max-w-7xl mx-auto px-6 py-10">
-            <div class="flex justify-between items-center mb-10">
-                <h1 class="text-3xl font-black text-slate-900 uppercase italic tracking-tighter">Attendance & Records</h1>
-                <button @click="openModal()" class="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black shadow-lg shadow-indigo-200 uppercase text-sm">＋ Add Entry</button>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+                <div class="w-full md:w-1/3 relative">
+                    <input type="text" x-model="searchQuery" placeholder="Search staff name..." class="w-full bg-white border border-slate-200 p-4 pl-12 rounded-2xl shadow-sm outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold transition-all">
+                    <svg class="w-5 h-5 absolute left-4 top-4.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <button @click="openModal()" class="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black shadow-lg shadow-indigo-200 uppercase text-sm hover:scale-[1.02] transition-all">＋ Add New Entry</button>
             </div>
+
+            <template x-if="searchQuery.length > 0">
+                <div class="bg-white rounded-[2.5rem] border border-slate-100 p-8 mb-10 shadow-sm animate-in fade-in slide-in-from-top-4">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Staff Performance Summary: <span class="text-indigo-600" x-text="searchQuery"></span></h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="p-6 bg-indigo-50 rounded-3xl"><p class="text-[10px] font-black uppercase text-indigo-400">Annual</p><p class="text-2xl font-black text-indigo-700" x-text="getStats().annual"></p></div>
+                        <div class="p-6 bg-rose-50 rounded-3xl"><p class="text-[10px] font-black uppercase text-rose-400">Sick</p><p class="text-2xl font-black text-rose-700" x-text="getStats().sick"></p></div>
+                        <div class="p-6 bg-amber-50 rounded-3xl"><p class="text-[10px] font-black uppercase text-amber-400">Casual</p><p class="text-2xl font-black text-amber-700" x-text="getStats().casual"></p></div>
+                        <div class="p-6 bg-slate-50 rounded-3xl"><p class="text-[10px] font-black uppercase text-slate-400">Unpaid</p><p class="text-2xl font-black text-slate-700" x-text="getStats().unpaid"></p></div>
+                    </div>
+                </div>
+            </template>
 
             <div class="bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm">
                 <table class="w-full text-left">
@@ -45,20 +61,20 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
-                        <template x-for="item in leaves" :key="item.id">
+                        <template x-for="item in filteredLeaves" :key="item.id">
                             <tr class="hover:bg-slate-50/50 transition-all">
                                 <td class="px-10 py-8">
                                     <p class="font-extrabold text-slate-900 uppercase text-base" x-text="item.name"></p>
-                                    <p class="text-[9px] text-slate-400 font-bold" x-text="'Modified by ' + item.lastEditedBy + ' on ' + item.lastEditedAt"></p>
+                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter" x-text="'Audit: ' + item.lastEditedBy.split('@')[0] + ' | ' + item.lastEditedAt"></p>
                                 </td>
                                 <td class="px-10 py-8">
-                                    <span :class="'bg-' + (item.leaveType || 'annual')" class="type-badge" x-text="item.leaveType || 'Annual'"></span>
+                                    <span :class="'bg-' + (item.leaveType || 'annual')" class="type-badge" x-text="item.leaveType"></span>
                                 </td>
                                 <td class="px-10 py-8 text-center">
                                     <p class="font-extrabold text-slate-700" x-text="item.startDate + (item.isHalfDay ? ' (Half)' : ' to ' + item.endDate)"></p>
                                     <p class="text-[10px] font-bold text-indigo-600 uppercase" x-text="item.totalDays + ' Days Counted'"></p>
                                 </td>
-                                <td class="px-10 py-8 text-right space-x-2">
+                                <td class="px-10 py-8 text-right space-x-2 text-nowrap">
                                     <button @click="editLeave(item)" class="text-indigo-600 font-black text-[10px] uppercase bg-indigo-50 px-4 py-2 rounded-lg">Edit</button>
                                     <template x-if="currentUserEmail === superAdmin">
                                         <button @click="deleteLeave(item.id)" class="text-rose-500 font-black text-[10px] uppercase bg-rose-50 px-4 py-2 rounded-lg">Del</button>
@@ -74,12 +90,19 @@
 
     <div x-show="showForm" x-cloak class="fixed inset-0 z-[1100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-6">
         <div class="bg-white w-full max-w-lg rounded-[3rem] p-12 shadow-2xl">
-            <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-8 italic">New Record Entry</h3>
+            <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-8 italic">Record Entry</h3>
             
             <div class="space-y-6">
                 <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Staff Name</label>
-                    <input type="text" x-model="form.name" class="w-full mt-2 bg-slate-50 border border-slate-200 p-5 rounded-2xl outline-none focus:border-indigo-500 font-bold">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Staff Member</label>
+                    <select x-model="form.name" class="w-full mt-2 bg-slate-50 border border-slate-200 p-5 rounded-2xl outline-none font-bold">
+                        <option value="">Select Staff...</option>
+                        <template x-for="name in staffList" :key="name">
+                            <option :value="name" x-text="name"></option>
+                        </template>
+                        <option value="Manual Entry">-- Manual Entry Below --</option>
+                    </select>
+                    <input x-show="form.name === 'Manual Entry'" type="text" x-model="manualName" placeholder="Type Name..." class="w-full mt-2 bg-slate-50 border border-slate-200 p-5 rounded-2xl font-bold">
                 </div>
                 
                 <div>
@@ -94,29 +117,40 @@
 
                 <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                     <input type="checkbox" x-model="form.isHalfDay" class="w-5 h-5 rounded text-indigo-600">
-                    <label class="font-black text-xs text-slate-600 uppercase">Half Day Logic</label>
+                    <label class="font-black text-xs text-slate-600 uppercase tracking-tighter">Half Day Logistics</label>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Start Date</label>
-                        <input type="date" x-model="form.startDate" class="w-full mt-2 bg-slate-50 border border-slate-200 p-5 rounded-2xl font-bold">
+                        <input type="date" x-model="form.startDate" class="w-full mt-2 bg-slate-50 border border-slate-200 p-5 rounded-2xl font-bold text-xs">
                     </div>
                     <div x-show="!form.isHalfDay">
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">End Date</label>
-                        <input type="date" x-model="form.endDate" class="w-full mt-2 bg-slate-50 border border-slate-200 p-5 rounded-2xl font-bold">
+                        <input type="date" x-model="form.endDate" class="w-full mt-2 bg-slate-50 border border-slate-200 p-5 rounded-2xl font-bold text-xs">
                     </div>
                 </div>
             </div>
 
             <div class="flex gap-4 mt-12">
-                <button @click="saveLeave()" class="flex-1 bg-indigo-600 text-white p-6 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-indigo-100 transition-all hover:scale-[1.02]">Save Record</button>
+                <button @click="saveLeave()" class="flex-1 bg-indigo-600 text-white p-6 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-indigo-100 transition-all active:scale-95">Save Record</button>
+                <button @click="showForm = false" class="px-8 bg-slate-100 text-slate-400 p-6 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="!isLoggedIn" x-cloak class="fixed inset-0 z-[2000] bg-[#f8fafc] flex items-center justify-center p-6">
+        <div class="w-full max-w-md bg-white p-12 rounded-[3.5rem] shadow-2xl border border-slate-100">
+            <h2 class="text-3xl font-black text-slate-900 uppercase italic tracking-tighter mb-8 text-center">Staff Login</h2>
+            <div class="space-y-4">
+                <input type="email" x-model="loginEmail" placeholder="Email" class="w-full bg-slate-50 border p-5 rounded-2xl outline-none font-bold">
+                <input type="password" x-model="loginPassword" placeholder="Password" class="w-full bg-slate-50 border p-5 rounded-2xl outline-none font-bold">
+                <button @click="login()" class="w-full bg-indigo-600 text-white p-6 rounded-2xl font-black uppercase text-sm shadow-xl shadow-indigo-100">Unlock System</button>
             </div>
         </div>
     </div>
 
     <script>
-        // CONFIG
         const firebaseConfig = { apiKey: "AIzaSyAOTE2f_iGVlR3u-hZ5n5OPaRXnuYmA9gQ", authDomain: "insurancetracker-69b69.firebaseapp.com", databaseURL: "https://insurancetracker-69b69-default-rtdb.firebaseio.com", projectId: "insurancetracker-69b69", storageBucket: "insurancetracker-69b69.firebasestorage.app", messagingSenderId: "419918361385", appId: "1:419918361385:web:01ec2d6b32b0df6988fd38" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -124,7 +158,9 @@
         function leaveSystem() {
             return {
                 isLoggedIn: false, currentUserEmail: '', superAdmin: 'sameer.pokharel@innovatetech.co',
-                loginEmail: '', loginPassword: '', showForm: false, leaves: [],
+                loginEmail: '', loginPassword: '', showForm: false, leaves: [], searchQuery: '',
+                staffList: ['Sangita', 'Sanjay', 'Gunja', 'Sameer', 'Priya', 'Anish'],
+                manualName: '',
                 form: { id: null, name: '', startDate: '', endDate: '', isHalfDay: false, leaveType: 'annual' },
                 
                 init() {
@@ -132,6 +168,18 @@
                         if(user){ this.isLoggedIn = true; this.currentUserEmail = user.email; this.loadData(); }
                         else { this.isLoggedIn = false; }
                     });
+                },
+                get filteredLeaves() {
+                    return this.leaves.filter(l => l.name.toLowerCase().includes(this.searchQuery.toLowerCase()));
+                },
+                getStats() {
+                    const filtered = this.leaves.filter(l => l.name.toLowerCase().includes(this.searchQuery.toLowerCase()));
+                    return {
+                        annual: filtered.filter(l => l.leaveType === 'annual').reduce((a, b) => a + Number(b.totalDays), 0),
+                        sick: filtered.filter(l => l.leaveType === 'sick').reduce((a, b) => a + Number(b.totalDays), 0),
+                        casual: filtered.filter(l => l.leaveType === 'casual').reduce((a, b) => a + Number(b.totalDays), 0),
+                        unpaid: filtered.filter(l => l.leaveType === 'unpaid').reduce((a, b) => a + Number(b.totalDays), 0),
+                    }
                 },
                 login() { firebase.auth().signInWithEmailAndPassword(this.loginEmail, this.loginPassword); },
                 logout() { firebase.auth().signOut().then(() => window.location.reload()); },
@@ -143,6 +191,7 @@
                 },
                 saveLeave() {
                     const id = this.form.id || Date.now();
+                    let finalName = this.form.name === 'Manual Entry' ? this.manualName : this.form.name;
                     let total = 0.5;
                     if(!this.form.isHalfDay) {
                         const s = new Date(this.form.startDate);
@@ -151,12 +200,14 @@
                     }
                     db.ref('leaves/' + id).set({
                         ...this.form, 
+                        name: finalName,
                         id: id, 
                         totalDays: total, 
                         lastEditedBy: this.currentUserEmail, 
-                        lastEditedAt: new Date().toLocaleString()
+                        lastEditedAt: new Date().toLocaleDateString('en-GB')
                     });
                     this.showForm = false;
+                    this.manualName = '';
                 },
                 deleteLeave(id) { if(confirm('Delete record?')) db.ref('leaves/' + id).remove(); },
                 openModal() {
